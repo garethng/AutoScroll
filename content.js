@@ -1,6 +1,10 @@
 let topButton = $('<div id="gototop" name="myGTTButton" data-testid="back-to-top-button"><svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 448 512" height="20" width="20" xmlns="http://www.w3.org/2000/svg" style="vertical-align: middle;"><path d="M240.971 130.524l194.343 194.343c9.373 9.373 9.373 24.569 0 33.941l-22.667 22.667c-9.357 9.357-24.522 9.375-33.901.04L224 227.495 69.255 381.516c-9.379 9.335-24.544 9.317-33.901-.04l-22.667-22.667c-9.373-9.373-9.373-24.569 0-33.941L207.03 130.525c9.372-9.373 24.568-9.373 33.941-.001z"></path></svg></div>')
 let bottomButton = $('<div id="gotoBottom" name="myGTTButton" data-testid="back-to-top-button"><svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 448 512" height="20" width="20" xmlns="http://www.w3.org/2000/svg" style="vertical-align: middle;"><path d="M240.971 130.524l194.343 194.343c9.373 9.373 9.373 24.569 0 33.941l-22.667 22.667c-9.357 9.357-24.522 9.375-33.901.04L224 227.495 69.255 381.516c-9.379 9.335-24.544 9.317-33.901-.04l-22.667-22.667c-9.373-9.373-9.373-24.569 0-33.941L207.03 130.525c9.372-9.373 24.568-9.373 33.941-.001z"></path></svg></div>')
 
+let hoverScrollInterval = null
+let hoverScrollSpeed = 20
+let hoverScrollDelay = 500
+
 window.addEventListener("load", function () {
     chrome.runtime.onMessage.addListener(handleMessage);
     chrome.runtime.sendMessage({
@@ -45,6 +49,21 @@ window.addEventListener("load", function () {
         $('body').append(topButton);
         $('body').on('click', '#gototop', gotoTop);
         $('body').on('click', "#gotoBottom",gotoBottom)
+
+        $('body').on('mouseenter', '#gototop', function() {
+            setTimeout(() => startAutoScroll('top'), hoverScrollDelay)
+        });
+        $('body').on('mouseleave', '#gototop', stopAutoScroll);
+
+        $('body').on('mouseenter', '#gotoBottom', function() {
+            setTimeout(() => startAutoScroll('bottom'), hoverScrollDelay)
+        });
+        $('body').on('mouseleave', '#gotoBottom', stopAutoScroll);
+
+        // Stop auto-scroll on manual interaction
+        $(window).on('scroll', stopAutoScroll);
+        $(document).on('mousedown touchstart', stopAutoScroll);
+
         $("div[name=myGTTButton]").hover(() => {
             $("div[name=myGTTButton]").css({
                 "background-color": "rgba(10, 10, 10, 0.5)",
@@ -87,17 +106,54 @@ function gotoTop() {
 }
 
 function gotoBottom(){
-    $("html, body").animate({ 
-        scrollTop: $(document).height() 
+    $("html, body").animate({
+        scrollTop: $(document).height()
     }, 'fast');
+}
+
+function startAutoScroll(direction) {
+    stopAutoScroll()
+
+    hoverScrollInterval = setInterval(() => {
+        const currentScroll = $(window).scrollTop()
+        const scrollAmount = direction === 'top' ? -hoverScrollSpeed : hoverScrollSpeed
+        const targetScroll = currentScroll + scrollAmount
+
+        if (direction === 'top' && targetScroll <= 0) {
+            window.scrollTo(0, 0)
+            stopAutoScroll()
+        } else if (direction === 'bottom' && targetScroll >= $(document).height() - $(window).height()) {
+            window.scrollTo(0, $(document).height())
+            stopAutoScroll()
+        } else {
+            window.scrollBy(0, scrollAmount)
+        }
+    }, 16)
+}
+
+function stopAutoScroll() {
+    if (hoverScrollInterval) {
+        clearInterval(hoverScrollInterval)
+        hoverScrollInterval = null
+    }
 }
 
 function checkStatus(status) {
     if (status) {
         if ($("body").height() > $(window).height()) {
             $("div[name=myGTTButton]").show();
-            bottomButton.hide()
-        } else { 
+            // Check current scroll position on page load
+            if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight) {
+                bottomButton.hide()
+                topButton.show()
+            } else if (window.scrollY <= 0) {
+                bottomButton.show()
+                topButton.hide()
+            } else {
+                bottomButton.show()
+                topButton.show()
+            }
+        } else {
             $("div[name=myGTTButton]").hide();
         }
     } else {
