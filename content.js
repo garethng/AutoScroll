@@ -6,6 +6,7 @@ let hoverScrollSpeed = 20
 let hoverScrollDelay = 500
 let buttonPosition = 'bottom-right'
 let isAutoScrolling = false
+let hoverTimeout = null
 
 window.addEventListener("load", function () {
     chrome.runtime.onMessage.addListener(handleMessage);
@@ -43,14 +44,19 @@ window.addEventListener("load", function () {
         $('body').on('click', "#gotoBottom",gotoBottom)
 
         $('body').on('mouseenter', '#gototop', function() {
-            setTimeout(() => startAutoScroll('top'), hoverScrollDelay)
+            clearTimeout(hoverTimeout);
+            hoverTimeout = setTimeout(() => startAutoScroll('top'), hoverScrollDelay);
         });
         $('body').on('mouseleave', '#gototop', stopAutoScroll);
 
         $('body').on('mouseenter', '#gotoBottom', function() {
-            setTimeout(() => startAutoScroll('bottom'), hoverScrollDelay)
+            clearTimeout(hoverTimeout);
+            hoverTimeout = setTimeout(() => startAutoScroll('bottom'), hoverScrollDelay);
         });
         $('body').on('mouseleave', '#gotoBottom', stopAutoScroll);
+
+        // Stop auto-scroll when leaving any button area
+        $('body').on('mouseleave', 'div[name=myGTTButton]', stopAutoScroll);
 
         // Stop auto-scroll on manual interaction
         $(window).on('scroll', function() {
@@ -139,10 +145,9 @@ function startAutoScroll(direction) {
 }
 
 function stopAutoScroll() {
-    if (hoverScrollInterval) {
-        clearInterval(hoverScrollInterval)
-        hoverScrollInterval = null
-    }
+    clearTimeout(hoverTimeout);
+    clearInterval(hoverScrollInterval)
+    hoverScrollInterval = null
     isAutoScrolling = false
 }
 
