@@ -109,6 +109,44 @@ p.title_wrappable{
 .checkBox-line{
   padding: 0 16px;
 }
+.config-section {
+    margin: 12px 0;
+    padding: 0 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.config-label {
+    font-size: 12px;
+    text-align: left;
+    width: 40%;
+}
+
+#positionSelect {
+    width: 55%;
+    padding: 4px;
+    font-size: 12px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+#speedSlider {
+    width: 50%;
+    margin: 0 8px;
+}
+
+#speedValue {
+    font-size: 11px;
+    width: 20%;
+    text-align: right;
+}
+
 @media (prefers-color-scheme: dark) {
     /* Dark Mode styles go here. */
+    #positionSelect {
+        background-color: #333;
+        color: white;
+        border-color: #555;
+    }
 }

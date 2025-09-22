@@ -2,12 +2,16 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
   if (request.cmd === "checkStatus") {
     getSettings((item) => {
       sendResponse({
-        all: item.all
+        all: item.all,
+        position: item.position,
+        scrollSpeed: item.scrollSpeed
       })
     })
   } else if (request.cmd === "setStatus") {
     setSettings({
-      all: request.all
+      all: request.all,
+      position: request.position,
+      scrollSpeed: request.scrollSpeed
     })
   }
   return true;
@@ -16,7 +20,9 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
 chrome.runtime.onInstalled.addListener(function (details) {
   if (details.reason === "install") {
     setSettings({
-      all: true
+      all: true,
+      position: 'bottom-right',
+      scrollSpeed: 20
     })
   } else if (details.reason === "update") {
     // When extension is updated

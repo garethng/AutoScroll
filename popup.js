@@ -1,31 +1,73 @@
 $("#allToggle").click(function () {
+    const config = {
+        all: $("#allToggle")[0].checked,
+        position: $("#positionSelect").val(),
+        scrollSpeed: parseInt($("#speedSlider").val())
+    }
 
     chrome.runtime.sendMessage({
         "cmd": "setStatus",
-        all: $("#allToggle")[0].checked
+        ...config
     })
+
     chrome.tabs.query({
         currentWindow: true,
         active: true
     }, function (tabs) {
         chrome.tabs.sendMessage(tabs[0].id, {
-            cmd: "checkStatus",
-            all: $("#allToggle")[0].checked
+            cmd: "updateConfig",
+            ...config
         }, function (res) {})
     })
 })
 
+$("#positionSelect").change(function() {
+    updateConfig()
+})
+
+$("#speedSlider").on('input', function() {
+    $("#speedValue").text($(this).val() + 'px')
+    updateConfig()
+})
+
+function updateConfig() {
+    const config = {
+        all: $("#allToggle")[0].checked,
+        position: $("#positionSelect").val(),
+        scrollSpeed: parseInt($("#speedSlider").val())
+    }
+
+    chrome.runtime.sendMessage({
+        "cmd": "setStatus",
+        ...config
+    })
+
+    chrome.tabs.query({
+        currentWindow: true,
+        active: true
+    }, function (tabs) {
+        chrome.tabs.sendMessage(tabs[0].id, {
+            cmd: "updateConfig",
+            ...config
+        }, function (res) {})
+    })
+}
+
 chrome.runtime.sendMessage({
     "cmd": "checkStatus"
-},item => {
+}, item => {
     if (item.all === undefined) {
-        $("#allToggle")[0].checked = true
+        item = { all: true, position: 'bottom-right', scrollSpeed: 20 }
         chrome.runtime.sendMessage({
             "cmd": "setStatus",
-            all: true
+            ...item
         })
     }
+
     $("#allToggle")[0].checked = item.all
+    $("#positionSelect").val(item.position || 'bottom-right')
+    $("#speedSlider").val(item.scrollSpeed || 20)
+    $("#speedValue").text((item.scrollSpeed || 20) + 'px')
 })
 
 function setupL10N() { 

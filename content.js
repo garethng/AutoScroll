@@ -4,6 +4,8 @@ let bottomButton = $('<div id="gotoBottom" name="myGTTButton" data-testid="back-
 let hoverScrollInterval = null
 let hoverScrollSpeed = 20
 let hoverScrollDelay = 500
+let buttonPosition = 'bottom-right'
+let isAutoScrolling = false
 
 window.addEventListener("load", function () {
     chrome.runtime.onMessage.addListener(handleMessage);
@@ -11,11 +13,10 @@ window.addEventListener("load", function () {
         cmd: "checkStatus",
         domain: document.domain
     }, function (res) {
-        
-        topButton.css({
+
+        // Set base styles
+        const baseStyles = {
             position: "fixed",
-            bottom: "110px",
-            right: "50px",
             height: "32px",
             width: "32px",
             'z-index': "2147483647",
@@ -26,24 +27,15 @@ window.addEventListener("load", function () {
             "align-items": "center",
             "justify-content": "center",
             "display":"-webkit-flex"
-        });
+        }
 
-        bottomButton.css({
-            position: "fixed",
-            bottom: "78px",
-            right: "50px",
-            height: "32px",
-            width: "32px",
-            'z-index': "2147483647",
-            cursor: "pointer",
-            "box-shadow": "rgb(97, 185, 232) 0px 0px 2px",
-            "background-color": "rgba(10, 10, 10, 0.3)",
-            "color": "rgba(255, 255, 255, 0.8)",
-            "align-items": "center",
-            "justify-content": "center",
-            "display":"-webkit-flex",
-            transform: "rotate(180deg)"
-        })
+        topButton.css(baseStyles)
+        bottomButton.css({...baseStyles, transform: "rotate(180deg)"})
+
+        // Apply configuration
+        if (res.scrollSpeed) hoverScrollSpeed = res.scrollSpeed
+        if (res.position) buttonPosition = res.position
+        updateButtonPositions()
         
         $('body').append(bottomButton);
         $('body').append(topButton);
@@ -61,7 +53,11 @@ window.addEventListener("load", function () {
         $('body').on('mouseleave', '#gotoBottom', stopAutoScroll);
 
         // Stop auto-scroll on manual interaction
-        $(window).on('scroll', stopAutoScroll);
+        $(window).on('scroll', function() {
+            if (!isAutoScrolling) {
+                stopAutoScroll();
+            }
+        });
         $(document).on('mousedown touchstart', stopAutoScroll);
 
         $("div[name=myGTTButton]").hover(() => {
@@ -91,6 +87,16 @@ const handleMessage = (request, sender, sendResponse) => {
             case "checkStatus":
                 checkStatus(request.all)
                 break
+            case "updateConfig":
+                if (request.scrollSpeed) hoverScrollSpeed = request.scrollSpeed
+                if (request.position) {
+                    buttonPosition = request.position
+                    updateButtonPositions()
+                }
+                if (request.all !== undefined) {
+                    checkStatus(request.all)
+                }
+                break
             default:
                 break
         }
@@ -113,6 +119,7 @@ function gotoBottom(){
 
 function startAutoScroll(direction) {
     stopAutoScroll()
+    isAutoScrolling = true
 
     hoverScrollInterval = setInterval(() => {
         const currentScroll = $(window).scrollTop()
@@ -135,6 +142,35 @@ function stopAutoScroll() {
     if (hoverScrollInterval) {
         clearInterval(hoverScrollInterval)
         hoverScrollInterval = null
+    }
+    isAutoScrolling = false
+}
+
+function updateButtonPositions() {
+    if (buttonPosition === 'right-center') {
+        topButton.css({
+            bottom: '52%',
+            right: '50px',
+            transform: 'translateY(50%)'
+        })
+        bottomButton.css({
+            bottom: '48%',
+            right: '50px',
+            transform: 'translateY(50%) rotate(180deg)',
+            marginTop: '40px'
+        })
+    } else {
+        topButton.css({
+            bottom: '110px',
+            right: '50px',
+            transform: 'none'
+        })
+        bottomButton.css({
+            bottom: '78px',
+            right: '50px',
+            transform: 'rotate(180deg)',
+            marginTop: '0'
+        })
     }
 }
 
