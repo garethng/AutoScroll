@@ -9,5 +9,25 @@
     },
     "popup_config_hide_all":{
         "message":"显示滚动按钮"
+    },
+    "popup_title": {
+        "message": "自动滚动",
+        "description": "Popup title"
+    },
+    "popup_button_position": {
+        "message": "按钮位置:",
+        "description": "Button position label"
+    },
+    "popup_scroll_speed": {
+        "message": "滚动速度:",
+        "description": "Scroll speed label"
+    },
+    "popup_position_bottom_right": {
+        "message": "右下角",
+        "description": "Bottom right position option"
+    },
+    "popup_position_right_center": {
+        "message": "右侧居中",
+        "description": "Right center position option"
     }
 }

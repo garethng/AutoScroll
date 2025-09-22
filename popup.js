@@ -70,8 +70,15 @@ chrome.runtime.sendMessage({
     $("#speedValue").text((item.scrollSpeed || 20) + 'px')
 })
 
-function setupL10N() { 
+function setupL10N() {
     $("label.title-toggle").text(chrome.i18n.getMessage("popup_config_hide_all"))
+    $("#goToUp_title").text(chrome.i18n.getMessage("popup_title"))
+    $(".config-label:contains('Button Position:')").text(chrome.i18n.getMessage("popup_button_position"))
+    $(".config-label:contains('Scroll Speed:')").text(chrome.i18n.getMessage("popup_scroll_speed"))
+
+    // Update position select options
+    $("#positionSelect option[value='bottom-right']").text(chrome.i18n.getMessage("popup_position_bottom_right"))
+    $("#positionSelect option[value='right-center']").text(chrome.i18n.getMessage("popup_position_right_center"))
 }
 
 setupL10N()
